@@ -39,10 +39,11 @@ class WaveshareDisplay:
                 sys.path.insert(0, path_str)
 
     def _module_name_for_model(self) -> Optional[str]:
-        mapping = {
-            "5in65f": "epd5in65f",
+        mapping_primary = {
+            "5in65f": "waveshare_epd.epd5in65f",
         }
-        return mapping.get(self.model)
+        # Prefer packaged layout (waveshare_epd.*); some older vendor layouts expose top-level modules
+        return mapping_primary.get(self.model)
 
     def initialize(self) -> None:
         self._ensure_lib_on_path()
@@ -50,16 +51,31 @@ class WaveshareDisplay:
         if module_name is None:
             raise RuntimeError(f"Unsupported display model: {self.model}")
         try:
-            self._module = __import__(module_name)
+            # Try preferred packaged import first
+            self._module = __import__(module_name, fromlist=["EPD"])  # type: ignore[arg-type]
+        except Exception:
+            # Fallback: older layout exposes top-level module name
+            legacy_name = module_name.rsplit(".", 1)[-1]
+            try:
+                self._module = __import__(legacy_name)
+            except Exception as exc:
+                self.epd = None
+                sys.stderr.write(f"[ePaper] Using simulation mode: {exc}\n")
+                # Enforce orientation even in simulation
+                if self.orientation == "portrait" and self.width > self.height:
+                    self.width, self.height = self.height, self.width
+                return
+
+        # If we get here, module import succeeded; try to init hardware
+        try:
             self.epd = self._module.EPD()
             self.epd.init()
-            # If driver provides dimensions, use them
             epd_w = getattr(self.epd, "width", None)
             epd_h = getattr(self.epd, "height", None)
             if isinstance(epd_w, int) and isinstance(epd_h, int):
                 self.width, self.height = epd_w, epd_h
         except Exception as exc:
-            # Hardware not available or driver missing; fall back to simulation
+            # Hardware not available or driver missing dependencies; fall back to simulation
             self.epd = None
             sys.stderr.write(f"[ePaper] Using simulation mode: {exc}\n")
 

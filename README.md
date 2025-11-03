@@ -20,13 +20,18 @@ References:
 
 ## Quick start
 1) Clone this project to your device that drives the e‑Paper.
-2) Vendor the Waveshare Python lib (or set an env var):
-   - Recommended: place the repo under `vendor/waveshare`:
+2) Vendor the Waveshare Python lib (no changes to their repo needed):
+   - One-time fetch (self-contained):
+     ```bash
+     python scripts/vendor_waveshare.py
+     ```
+     This downloads only the required driver files into `vendor/waveshare/RaspberryPi_JetsonNano/python/lib/waveshare_epd/`.
+   - Or clone their repo locally (optional alternative):
      ```
      git clone https://github.com/waveshareteam/e-Paper.git vendor/waveshare
      ```
      The server will look for `vendor/waveshare/RaspberryPi_JetsonNano/python/lib` automatically.
-   - Or set `WAVESHARE_LIB_PATH` to point at the `python/lib` folder from their repo.
+   - You can also set `WAVESHARE_LIB_PATH` to point at the `python/lib` folder from their repo.
 3) Install deps:
    ```
    pip install -r requirements.txt
@@ -50,7 +55,7 @@ This project dynamically imports the Waveshare Python driver. By default it look
 - `vendor/waveshare/RaspberryPi_JetsonNano/python/lib` (if present), or
 - the path in `WAVESHARE_LIB_PATH` env var.
 
-The 5.65" 7‑color panel is mapped to module `epd5in65f`. For details and updates, see the official repo:
+The 5.65" 7‑color panel is mapped to module `waveshare_epd.epd5in65f`. For details and updates, see the official repo:
 `https://github.com/waveshareteam/e-Paper` and
 `https://github.com/waveshareteam/e-Paper/tree/master/RaspberryPi_JetsonNano/python`.
 
