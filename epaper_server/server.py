@@ -142,6 +142,14 @@ def _make_display() -> WaveshareDisplay:
 def create_app() -> Flask:
     app = Flask(__name__)
     display = _make_display()
+    app.logger.info(
+        "Display initialized: model=%s size=%sx%s orientation=%s driver=%s",
+        display.model,
+        display.width,
+        display.height,
+        display.orientation,
+        "simulation" if display.epd is None else "hardware",
+    )
 
     @app.get("/")
     def index() -> str:
@@ -149,23 +157,25 @@ def create_app() -> Flask:
 
     @app.get("/api/status")
     def status() -> Dict[str, Any]:
-        return jsonify(
-            {
-                "model": display.model,
-                "width": display.width,
-                "height": display.height,
-                "orientation": display.orientation,
-                "driver": "simulation" if display.epd is None else "hardware",
-            }
-        )
+        payload = {
+            "model": display.model,
+            "width": display.width,
+            "height": display.height,
+            "orientation": display.orientation,
+            "driver": "simulation" if display.epd is None else "hardware",
+        }
+        app.logger.debug("/api/status -> %s", payload)
+        return jsonify(payload)
 
     @app.post("/api/clear")
     def clear() -> Dict[str, Any]:
+        app.logger.info("/api/clear")
         display.clear()
         return jsonify({"ok": True})
 
     @app.post("/api/display/image")
     def api_display_image() -> Dict[str, Any]:
+        app.logger.info("/api/display/image")
         file = request.files.get("file")
         if not file:
             return jsonify({"ok": False, "error": "missing file"}), 400
@@ -173,6 +183,9 @@ def create_app() -> Flask:
         dither = request.form.get("dither") == "on" or request.form.get("dither") == "true"
         rotate = int(request.form.get("rotate", "0"))
         mirror = request.form.get("mirror") == "on" or request.form.get("mirror") == "true"
+        # Apply device orientation automatically (portrait rotates content)
+        orient_rotate = 90 if display.orientation == "portrait" else 0
+        total_rotate = (rotate + orient_rotate) % 360
 
         raw = file.read()
         img = open_image_from_bytes(raw)
@@ -182,14 +195,24 @@ def create_app() -> Flask:
             display.height,
             mode=mode,  # type: ignore[arg-type]
             dither=dither,
-            rotate=rotate,
+            rotate=total_rotate,
             mirror=mirror,
+        )
+        app.logger.debug(
+            "display_image params: mode=%s dither=%s rotate=%s mirror=%s orient_rotate=%s -> out=%s",
+            mode,
+            dither,
+            rotate,
+            mirror,
+            orient_rotate,
+            prepped.size,
         )
         display.show_image(prepped)
         return jsonify({"ok": True, "width": display.width, "height": display.height})
 
     @app.post("/api/display/text")
     def api_display_text() -> Dict[str, Any]:
+        app.logger.info("/api/display/text")
         data = request.get_json(silent=True) or request.form
         text = data.get("text", "").strip()
         if not text:
@@ -213,7 +236,23 @@ def create_app() -> Flask:
         # final quantization to panel palette is handled in image prep path
         from .image_utils import prepare_5in65_image
 
-        prepped = prepare_5in65_image(text_img, display.width, display.height)
+        orient_rotate = 90 if display.orientation == "portrait" else 0
+        prepped = prepare_5in65_image(
+            text_img,
+            display.width,
+            display.height,
+            rotate=orient_rotate,
+        )
+        app.logger.debug(
+            "display_text params: len=%d font_size=%d align=%s valign=%s wrap=%s orient_rotate=%s -> out=%s",
+            len(text),
+            font_size,
+            align,
+            valign,
+            wrap,
+            orient_rotate,
+            prepped.size,
+        )
         display.show_image(prepped)
         return jsonify({"ok": True, "width": display.width, "height": display.height})
 

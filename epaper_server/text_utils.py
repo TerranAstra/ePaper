@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from typing import Literal, Tuple
+import logging
 
 from PIL import Image, ImageDraw, ImageFont
+
+logger = logging.getLogger(__name__)
 
 
 HorizontalAlign = Literal["left", "center", "right"]
@@ -12,9 +15,12 @@ VerticalAlign = Literal["top", "middle", "bottom"]
 def _load_font(font_path: str | None, font_size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     if font_path:
         try:
-            return ImageFont.truetype(font_path, font_size)
+            font = ImageFont.truetype(font_path, font_size)
+            logger.debug("Loaded font: %s size=%d", font_path, font_size)
+            return font
         except Exception:
             pass
+    logger.debug("Using default font size=%d", font_size)
     return ImageFont.load_default()
 
 
@@ -39,6 +45,7 @@ def _wrap_text(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.ImageFont, 
         lines.append(" ".join(current))
     if not lines:
         lines = [""]
+    logger.debug("wrap_text: max_width=%d -> %d lines", max_width, len(lines))
     return lines
 
 
@@ -56,6 +63,15 @@ def render_text_to_image(
     text_color: Tuple[int, int, int] = (0, 0, 0),
     background: Tuple[int, int, int] = (255, 255, 255),
 ) -> Image.Image:
+    logger.debug(
+        "render_text_to_image: size=%sx%s font_size=%d align=%s valign=%s wrap=%s",
+        width,
+        height,
+        font_size,
+        align,
+        valign,
+        wrap,
+    )
     image = Image.new("RGB", (width, height), background)
     draw = ImageDraw.Draw(image)
     font = _load_font(font_path, font_size)
@@ -95,6 +111,7 @@ def render_text_to_image(
         draw.text((x, y), line, font=font, fill=text_color)
         y += effective_line_height
 
+    logger.debug("render_text_to_image: rendered %d lines", len(lines))
     return image
 
 
