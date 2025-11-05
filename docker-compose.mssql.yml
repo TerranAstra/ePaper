@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  mssql-x64:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: frank-mssql
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Your_strong_password123
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssqldata:/var/opt/mssql
+    profiles: ["x64"]
+
+  mssql-edge:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    container_name: frank-azure-sql-edge
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Your_strong_password123
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssqldata:/var/opt/mssql
+    profiles: ["pi"]
+
+volumes:
+  mssqldata:
+
+
