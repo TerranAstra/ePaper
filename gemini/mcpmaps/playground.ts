@@ -106,7 +106,7 @@ export class Playground extends LitElement {
   }
 
   async renderMapQuery(location: MapParams) {
-    const MAPS_API_KEY = 'AIzaSyC7c1m_Jyz3uw6lbIQUNuH3e6o0NKc_8hk';
+    const MAPS_API_KEY = 'AIzaSyC7...0NKc_8hk';
     let src = '';
     if (location.location) {
       src = `https://www.google.com/maps/embed/v1/place?key=${MAPS_API_KEY}&q=${location.location}`;
