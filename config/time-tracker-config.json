@@ -1,0 +1,46 @@
+{
+  "CITIES": {
+    "Tokyo": ["Shibuya", "Shinjuku", "Ginza"],
+    "New York": ["Manhattan", "Brooklyn", "Queens"],
+    "London": ["Westminster", "Camden", "Greenwich"],
+    "Paris": ["Le Marais", "Saint-Germain-des-Prés", "Montmartre"],
+    "Sydney": ["The Rocks", "Bondi", "Newtown"],
+    "Cairo": ["Zamalek", "Heliopolis", "Maadi"],
+    "Moscow": ["Arbat District", "Tverskoy District", "Presnensky District"],
+    "São Paulo": ["Jardins", "Vila Madalena", "Itaim Bibi"],
+    "Shanghai": ["The Bund", "Xuhui", "Jing'an"],
+    "Mexico City": ["Condesa", "Polanco", "Coyoacán"]
+  },
+  "QUESTIONS": [
+    "what are the best parks in",
+    "how is the public transport for",
+    "what are the top-rated local restaurants in",
+    "what community events are happening this month in"
+  ],
+  "SOLAR_ZONES": [
+    { "id": 0, "name": "Solar Zone 0 (IDL West)", "city": "Auckland", "town": "CBD" },
+    { "id": 1, "name": "Solar Zone 1", "city": "Sydney", "town": "The Rocks" },
+    { "id": 2, "name": "Solar Zone 2", "city": "Tokyo", "town": "Shibuya" },
+    { "id": 3, "name": "Solar Zone 3", "city": "Shanghai", "town": "The Bund" },
+    { "id": 4, "name": "Solar Zone 4", "city": "Bangkok", "town": "Sukhumvit" },
+    { "id": 5, "name": "Solar Zone 5", "city": "Karachi", "town": "Clifton" },
+    { "id": 6, "name": "Solar Zone 6", "city": "Dubai", "town": "Downtown" },
+    { "id": 7, "name": "Solar Zone 7", "city": "Moscow", "town": "Arbat District" },
+    { "id": 8, "name": "Solar Zone 8", "city": "Cairo", "town": "Zamalek" },
+    { "id": 9, "name": "Solar Zone 9", "city": "Paris", "town": "Le Marais" },
+    { "id": 10, "name": "Solar Zone 10 (GMT)", "city": "London", "town": "Westminster" },
+    { "id": 11, "name": "Solar Zone 11", "city": "Azores", "town": "Ponta Delgada" },
+    { "id": 12, "name": "Solar Zone 12", "city": "São Paulo", "town": "Jardins" },
+    { "id": 13, "name": "Solar Zone 13", "city": "Santiago", "town": "Providencia" },
+    { "id": 14, "name": "Solar Zone 14", "city": "New York", "town": "Manhattan" },
+    { "id": 15, "name": "Solar Zone 15", "city": "Mexico City", "town": "Condesa" },
+    { "id": 16, "name": "Solar Zone 16", "city": "Denver", "town": "LoDo" },
+    { "id": 17, "name": "Solar Zone 17", "city": "Los Angeles", "town": "Santa Monica" },
+    { "id": 18, "name": "Solar Zone 18", "city": "Anchorage", "town": "Downtown" },
+    { "id": 19, "name": "Solar Zone 19", "city": "Honolulu", "town": "Waikiki" },
+    { "id": 20, "name": "Solar Zone 20", "city": "Midway Atoll", "town": "Sand Island" },
+    { "id": 21, "name": "Solar Zone 21", "city": "Auckland", "town": "CBD" },
+    { "id": 22, "name": "Solar Zone 22", "city": "Auckland", "town": "CBD" },
+    { "id": 23, "name": "Solar Zone 23", "city": "Auckland", "town": "CBD" }
+  ]
+}
