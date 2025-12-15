@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Frank Spinner Lab – Chains</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin:0; padding:0; background:#101216; color:#f2f2f2; }
+    header { background:#181b22; padding:10px 16px; display:flex; align-items:center; justify-content:space-between; }
+    header nav a { color:#9bb3ff; margin-right:12px; text-decoration:none; font-size:14px; }
+    header nav a:hover { text-decoration:underline; }
+    main { padding:16px; max-width:1100px; margin:0 auto; }
+    .card { background:#181b22; border-radius:8px; padding:12px 16px; margin-bottom:16px; border:1px solid #272b36; }
+    .card h2 { margin-top:0; font-size:18px; }
+    .pill { display:inline-block; padding:2px 6px; border-radius:999px; font-size:11px; background:#242a38; margin-right:4px; margin-bottom:2px; }
+    .pill span.kind { opacity:0.7; margin-right:3px; }
+    .pill span.value { font-weight:600; }
+    .matrix { width:100%; border-collapse:collapse; font-size:12px; margin-top:8px; }
+    .matrix th, .matrix td { border:1px solid #262a35; padding:4px 6px; text-align:left; }
+    .matrix th { background:#151821; }
+    small { opacity:0.7; }
+    button { background:#2b3240; border:none; color:#fff; padding:4px 8px; border-radius:4px; font-size:12px; cursor:pointer; }
+  </style>
+</head>
+<body>
+<header>
+  <div><strong>Frank Spinner Lab</strong> <small>v0.1 – Chains</small></div>
+  <nav>
+    <a href="index.html">Builder</a>
+    <a href="chains.html">Chains</a>
+    <a href="config.html">Config & External Refs</a>
+  </nav>
+</header>
+
+<main>
+  <section class="card">
+    <h2>Saved Chains</h2>
+    <div id="chainsList"></div>
+    <small>
+      This is a conceptual many-to-many view:  
+      chains ↔ steps ↔ spinner kinds ↔ values.  
+      In a real DB, this would be tables like Chain, ChainStep, SpinnerSlot, SpinnerValue.
+    </small>
+  </section>
+
+  <section class="card">
+    <h2>Kind ↔ Value Matrix</h2>
+    <table class="matrix" id="matrixTable"></table>
+    <small>
+      Think of this as a crude Dewey-of-Deweys:  
+      which kinds show up with which values across chains.
+    </small>
+  </section>
+</main>
+
+<script>
+  const LS_KEY = "frankSpinnerLab";
+  let state = { spinners: [], chains: [] };
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) state = JSON.parse(raw);
+    } catch (e) { console.warn(e); }
+  }
+
+  function renderChains() {
+    const container = document.getElementById("chainsList");
+    container.innerHTML = "";
+    if (!state.chains || state.chains.length === 0) {
+      container.innerHTML = "<small>No chains saved yet. Build some on the Builder tab.</small>";
+      return;
+    }
+
+    state.chains.forEach(chain => {
+      const card = document.createElement("div");
+      card.style.borderBottom = "1px solid #262a35";
+      card.style.padding = "6px 0";
+
+      const title = document.createElement("div");
+      title.innerHTML = `<strong>${chain.name}</strong> <small>${new Date(chain.createdAt).toLocaleString()}</small>`;
+      card.appendChild(title);
+
+      if (chain.notes) {
+        const notes = document.createElement("div");
+        notes.innerHTML = `<small>${chain.notes}</small>`;
+        card.appendChild(notes);
+      }
+
+      chain.steps.forEach((step, idx) => {
+        const stepDiv = document.createElement("div");
+        stepDiv.style.marginTop = "4px";
+        stepDiv.innerHTML = `<small>Step ${idx + 1}</small>`;
+        const pills = document.createElement("div");
+        step.selections.forEach(sel => {
+          const pill = document.createElement("span");
+          pill.className = "pill";
+          pill.innerHTML = `<span class="kind">${sel.kind}</span><span class="value">${sel.value}</span>`;
+          pills.appendChild(pill);
+        });
+        stepDiv.appendChild(pills);
+        card.appendChild(stepDiv);
+      });
+
+      container.appendChild(card);
+    });
+  }
+
+  function renderMatrix() {
+    const table = document.getElementById("matrixTable");
+    table.innerHTML = "";
+
+    const counts = {}; // key: kind|value -> count
+    const kindsSet = new Set();
+    const valuesSet = new Set();
+
+    (state.chains || []).forEach(chain => {
+      (chain.steps || []).forEach(step => {
+        (step.selections || []).forEach(sel => {
+          kindsSet.add(sel.kind);
+          valuesSet.add(sel.value);
+          const key = sel.kind + "|" + sel.value;
+          counts[key] = (counts[key] || 0) + 1;
+        });
+      });
+    });
+
+    const kinds = Array.from(kindsSet);
+    const values = Array.from(valuesSet);
+
+    if (kinds.length === 0 || values.length === 0) {
+      table.innerHTML = "<tr><td><small>No data yet.</small></td></tr>";
+      return;
+    }
+
+    // header
+    let headerRow = "<tr><th>Kind \\ Value</th>";
+    values.forEach(v => headerRow += `<th>${v}</th>`);
+    headerRow += "</tr>";
+    table.insertAdjacentHTML("beforeend", headerRow);
+
+    kinds.forEach(k => {
+      let row = `<tr><th>${k}</th>`;
+      values.forEach(v => {
+        const key = k + "|" + v;
+        const c = counts[key] || "";
+        row += `<td>${c}</td>`;
+      });
+      row += "</tr>";
+      table.insertAdjacentHTML("beforeend", row);
+    });
+  }
+
+  loadState();
+  renderChains();
+  renderMatrix();
+</script>
+</body>
+</html>

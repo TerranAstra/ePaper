@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Frank Spinner Lab – Config & External Refs</title>
+  <style>
+    body { font-family:system-ui,sans-serif; margin:0; padding:0; background:#101216; color:#f2f2f2; }
+    header { background:#181b22; padding:10px 16px; display:flex; align-items:center; justify-content:space-between; }
+    header nav a { color:#9bb3ff; margin-right:12px; text-decoration:none; font-size:14px; }
+    header nav a:hover { text-decoration:underline; }
+    main { padding:16px; max-width:900px; margin:0 auto; }
+    .card { background:#181b22; border-radius:8px; padding:12px 16px; margin-bottom:16px; border:1px solid #272b36; }
+    .card h2 { margin-top:0; font-size:18px; }
+    a { color:#9bb3ff; }
+    label { font-size:12px; text-transform:uppercase; letter-spacing:0.06em; opacity:0.8; }
+    input[type="text"] { width:100%; background:#101216; color:#f2f2f2; border-radius:4px; border:1px solid #2b3240; padding:4px 6px; font-size:13px; }
+    button { background:#2b7cff; border:none; color:#fff; padding:6px 10px; border-radius:4px; font-size:13px; cursor:pointer; }
+    small { opacity:0.7; }
+    ul { margin-top:4px; }
+  </style>
+</head>
+<body>
+<header>
+  <div><strong>Frank Spinner Lab</strong> <small>v0.1 – Config</small></div>
+  <nav>
+    <a href="index.html">Builder</a>
+    <a href="chains.html">Chains</a>
+    <a href="config.html">Config & External Refs</a>
+  </nav>
+</header>
+
+<main>
+  <section class="card">
+    <h2>External Style / Config Repos</h2>
+    <p>
+      These are placeholders for the kinds of external references you mentioned.
+      In a real implementation, the spinner options (and even the visual style)
+      could be hydrated from these repos or similar config sources.
+    </p>
+    <ul>
+      <li>
+        ePaper Styles:
+        <a href="https://github.com/TerranAstra/ePaper/tree/main/styles" target="_blank">
+          https://github.com/TerranAstra/ePaper/tree/main/styles
+        </a>
+      </li>
+      <li>
+        ePaper Config:
+        <a href="https://github.com/TerranAstra/ePaper/tree/main/config" target="_blank">
+          https://github.com/TerranAstra/ePaper/tree/main/config
+        </a>
+      </li>
+    </ul>
+    <small>
+      For example: you could use a JSON file in those repos to define initial spinner kinds / values,
+      and this mock UI would load them at startup instead of using hard-coded lists.
+    </small>
+  </section>
+
+  <section class="card">
+    <h2>Future Wiring Notes</h2>
+    <p>
+      This page is intentionally low-tech – it exists to remind future-Frank what to connect:
+    </p>
+    <ul>
+      <li>Use the **32-questions identifier** semantics to define canonical spinner sets.</li>
+      <li>Map spinner kinds to HDI axes (NOUN, PROP, VERB, TIME, PLACE, ROLE, DESIRE, LANG, CODE, REF).</li>
+      <li>Persist chains into a real DB schema (Chain, ChainStep, SpinnerSlot, SpinnerValue, ExternalRef).</li>
+      <li>Wire this mock UI into `Frank.AppHostX` so chains can become:
+        <ul>
+          <li>HDI templates,</li>
+          <li>Fangshi 7-tuple “profiles”,</li>
+          <li>OmniGlyph patterns (e.g. Noun.Property chains → glyphs).</li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Local Config (Optional)</h2>
+    <label for="configNote">Notes to future you / future Frank:</label><br>
+    <input type="text" id="configNote" placeholder="e.g. Next: bind this to Frank.Cycle and Frank.Roles.">
+    <small>Not persisted – this is just a scratchpad for now.</small>
+  </section>
+</main>
+</body>
+</html>

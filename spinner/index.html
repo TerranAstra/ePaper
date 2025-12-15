@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Frank Spinner Lab – Builder</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 0; background:#101216; color:#f2f2f2; }
+    header { background:#181b22; padding:10px 16px; display:flex; align-items:center; justify-content:space-between; }
+    header nav a { color:#9bb3ff; margin-right:12px; text-decoration:none; font-size:14px; }
+    header nav a:hover { text-decoration:underline; }
+    main { padding:16px; max-width:1100px; margin:0 auto; }
+    .card { background:#181b22; border-radius:8px; padding:12px 16px; margin-bottom:16px; border:1px solid #272b36; }
+    .card h2 { margin-top:0; font-size:18px; }
+    .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:8px; }
+    label { font-size:12px; text-transform:uppercase; letter-spacing:0.06em; opacity:0.8; }
+    select, input[type="text"], textarea {
+      background:#101216; color:#f2f2f2; border-radius:4px; border:1px solid #2b3240;
+      padding:4px 6px; font-size:13px; min-width:120px;
+    }
+    button {
+      background:#2b7cff; border:none; color:#fff; padding:6px 10px; border-radius:4px;
+      font-size:13px; cursor:pointer;
+    }
+    button.secondary { background:#2b3240; }
+    button.small { padding:3px 8px; font-size:12px; }
+    button:disabled { opacity:0.4; cursor:default; }
+    .spinner-row { border-bottom:1px dashed #2b3240; padding-bottom:6px; margin-bottom:6px; }
+    .pill { display:inline-block; padding:2px 6px; border-radius:999px; font-size:11px; background:#242a38; margin-right:4px; margin-bottom:2px; }
+    .pill span.kind { opacity:0.7; margin-right:3px; }
+    .pill span.value { font-weight:600; }
+    .chain-item { padding:4px 0; border-bottom:1px solid #222633; }
+    .chain-item:last-child { border-bottom:none; }
+    small { opacity:0.7; }
+    textarea { width:100%; min-height:50px; resize:vertical; }
+  </style>
+</head>
+<body>
+<header>
+  <div><strong>Frank Spinner Lab</strong> <small>v0.1 – Builder</small></div>
+  <nav>
+    <a href="index.html">Builder</a>
+    <a href="chains.html">Chains</a>
+    <a href="config.html">Config & External Refs</a>
+  </nav>
+</header>
+
+<main>
+  <!-- 1. Spinner palette -->
+  <section class="card">
+    <h2>1. Define Spinner Slot</h2>
+    <div class="row">
+      <div>
+        <label for="spinnerKind">Dimension / Kind</label><br>
+        <select id="spinnerKind">
+          <option value="NOUN">Noun (thing / entity)</option>
+          <option value="PROP">Property (adjective)</option>
+          <option value="VERB">Verb (action / relation)</option>
+          <option value="TIME">Time / Cycle</option>
+          <option value="PLACE">Place / Scope</option>
+          <option value="ROLE">Role / Persona</option>
+          <option value="DESIRE">Desire / Intent</option>
+          <option value="LANG">Language / LF2</option>
+          <option value="CODE">Code / Type / KeySet</option>
+          <option value="REF">External Ref (URL / repo)</option>
+        </select>
+      </div>
+      <div>
+        <label for="spinnerLabel">Label</label><br>
+        <input type="text" id="spinnerLabel" placeholder="e.g. Primary Noun, Data Type, Archon Context">
+      </div>
+      <div>
+        <label for="spinnerValues">Candidate Values (comma-separated)</label><br>
+        <input type="text" id="spinnerValues" placeholder="e.g. City, Person, Repo, Glyph">
+      </div>
+      <div>
+        <label>&nbsp;</label><br>
+        <button id="addSpinnerBtn">+ Add Spinner Slot</button>
+      </div>
+    </div>
+    <small>
+      Idea: each slot is one “spinner” dimension in your HDI N-tuple.  
+      K/A/Q and 32-question sets can all be expressed as combinations of these.
+    </small>
+  </section>
+
+  <!-- 2. Active spinners -->
+  <section class="card">
+    <h2>2. Active Spinners (This Chain Step)</h2>
+    <div id="spinnersContainer"></div>
+    <small>
+      You can think of this as a “question row” in a 32-questions identifier.  
+      Add/remove slots until this row feels like the right tuple for this kind of object.
+    </small>
+  </section>
+
+  <!-- 3. Build chain from current selections -->
+  <section class="card">
+    <h2>3. Build & Name Chain</h2>
+    <div class="row">
+      <div>
+        <label for="chainName">Chain Name</label><br>
+        <input type="text" id="chainName" placeholder="e.g. Noun, Noun.Property, KingSide, Archon, QueenSide">
+      </div>
+      <div>
+        <label for="chainNotes">Notes / Intent (optional)</label><br>
+        <textarea id="chainNotes" placeholder="What is this chain trying to capture? e.g. Noun.Property for HDI, or K-A-Q pattern"></textarea>
+      </div>
+    </div>
+    <button id="addStepBtn">+ Add Current Selection as Step</button>
+    <button id="saveChainBtn" class="secondary">Save Chain</button>
+    <div style="margin-top:8px;">
+      <strong>Chain Steps (Preview)</strong>
+      <div id="chainSteps"></div>
+    </div>
+  </section>
+
+  <!-- 4. Local-only storage -->
+  <section class="card">
+    <h2>4. Local Storage Snapshot</h2>
+    <button id="exportJsonBtn" class="secondary small">Export JSON (clipboard)</button>
+    <button id="clearAllBtn" class="secondary small">Clear All (spinners & chains)</button>
+    <pre id="debugOutput" style="font-size:11px; background:#0b0d11; padding:8px; border-radius:4px; max-height:200px; overflow:auto;"></pre>
+    <small>
+      This is intentionally local-only. In a real app, this JSON becomes the seed for a DB schema / HDI table set.
+    </small>
+  </section>
+</main>
+
+<script>
+  // Simple in-memory model, persisted to localStorage as "frankSpinnerLab"
+  const LS_KEY = "frankSpinnerLab";
+
+  const state = {
+    spinners: [],   // [{id, kind, label, values[]}]
+    chainSteps: [], // [{id, selections: [{spinnerId, kind, label, value}], createdAt}]
+    chains: []      // [{id, name, notes, steps[], createdAt}]
+  };
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        Object.assign(state, parsed);
+      }
+    } catch (e) {
+      console.warn("Failed to load state", e);
+    }
+  }
+
+  function saveState() {
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    renderDebug();
+  }
+
+  function uid() {
+    return "id_" + Math.random().toString(36).slice(2, 10);
+  }
+
+  // --- Spinner logic --------------------------------------------------------
+
+  const spinnersContainer = document.getElementById("spinnersContainer");
+
+  function renderSpinners() {
+    spinnersContainer.innerHTML = "";
+    if (state.spinners.length === 0) {
+      spinnersContainer.innerHTML = "<small>No spinners yet. Define at least one above.</small>";
+      return;
+    }
+
+    state.spinners.forEach(sp => {
+      const row = document.createElement("div");
+      row.className = "row spinner-row";
+
+      const labelDiv = document.createElement("div");
+      labelDiv.innerHTML = `<label>${sp.label || sp.kind}</label><br>`;
+      row.appendChild(labelDiv);
+
+      const selectDiv = document.createElement("div");
+      const select = document.createElement("select");
+      select.dataset.spinnerId = sp.id;
+      select.innerHTML = sp.values.map(v => `<option value="${v.trim()}">${v.trim()}</option>`).join("");
+      selectDiv.appendChild(select);
+      row.appendChild(selectDiv);
+
+      const metaDiv = document.createElement("div");
+      metaDiv.innerHTML = `<small>${sp.kind}</small>`;
+      row.appendChild(metaDiv);
+
+      const removeDiv = document.createElement("div");
+      const btn = document.createElement("button");
+      btn.textContent = "×";
+      btn.className = "secondary small";
+      btn.onclick = () => {
+        state.spinners = state.spinners.filter(s => s.id !== sp.id);
+        saveState();
+        renderSpinners();
+      };
+      removeDiv.appendChild(btn);
+      row.appendChild(removeDiv);
+
+      spinnersContainer.appendChild(row);
+    });
+  }
+
+  document.getElementById("addSpinnerBtn").onclick = () => {
+    const kind = document.getElementById("spinnerKind").value;
+    const label = document.getElementById("spinnerLabel").value.trim() || kind;
+    const valuesRaw = document.getElementById("spinnerValues").value.trim();
+    const values = valuesRaw ? valuesRaw.split(",").map(v => v.trim()).filter(Boolean) : [];
+
+    if (!values.length) {
+      alert("Please provide at least one candidate value (comma-separated).");
+      return;
+    }
+
+    state.spinners.push({
+      id: uid(),
+      kind,
+      label,
+      values
+    });
+    document.getElementById("spinnerLabel").value = "";
+    document.getElementById("spinnerValues").value = "";
+    saveState();
+    renderSpinners();
+  };
+
+  // --- Chain building -------------------------------------------------------
+
+  const chainStepsDiv = document.getElementById("chainSteps");
+
+  function renderChainSteps() {
+    chainStepsDiv.innerHTML = "";
+    if (state.chainSteps.length === 0) {
+      chainStepsDiv.innerHTML = "<small>No steps in this chain yet.</small>";
+      return;
+    }
+
+    state.chainSteps.forEach((step, idx) => {
+      const div = document.createElement("div");
+      div.className = "chain-item";
+      const header = document.createElement("div");
+      header.innerHTML = `<strong>Step ${idx + 1}</strong> <small>${new Date(step.createdAt).toLocaleTimeString()}</small>`;
+      div.appendChild(header);
+
+      const pillsContainer = document.createElement("div");
+      step.selections.forEach(sel => {
+        const pill = document.createElement("span");
+        pill.className = "pill";
+        pill.innerHTML = `<span class="kind">${sel.kind}</span><span class="value">${sel.value}</span>`;
+        pillsContainer.appendChild(pill);
+      });
+      div.appendChild(pillsContainer);
+
+      chainStepsDiv.appendChild(div);
+    });
+  }
+
+  document.getElementById("addStepBtn").onclick = () => {
+    if (state.spinners.length === 0) {
+      alert("Define at least one spinner first.");
+      return;
+    }
+
+    const selects = spinnersContainer.querySelectorAll("select");
+    const selections = [];
+    selects.forEach(sel => {
+      const spinnerId = sel.dataset.spinnerId;
+      const sp = state.spinners.find(s => s.id === spinnerId);
+      if (!sp) return;
+      selections.push({
+        spinnerId,
+        kind: sp.kind,
+        label: sp.label,
+        value: sel.value
+      });
+    });
+
+    state.chainSteps.push({
+      id: uid(),
+      selections,
+      createdAt: new Date().toISOString()
+    });
+
+    saveState();
+    renderChainSteps();
+  };
+
+  document.getElementById("saveChainBtn").onclick = () => {
+    const name = document.getElementById("chainName").value.trim();
+    const notes = document.getElementById("chainNotes").value.trim();
+    if (!name) {
+      alert("Give the chain a name first.");
+      return;
+    }
+    if (state.chainSteps.length === 0) {
+      alert("Add at least one step to the chain.");
+      return;
+    }
+
+    state.chains.push({
+      id: uid(),
+      name,
+      notes,
+      steps: state.chainSteps,
+      createdAt: new Date().toISOString()
+    });
+
+    // reset for next chain
+    state.chainSteps = [];
+    document.getElementById("chainName").value = "";
+    document.getElementById("chainNotes").value = "";
+    saveState();
+    renderChainSteps();
+    alert("Chain saved. You can inspect it on the Chains page.");
+  };
+
+  // --- Local storage / debug ------------------------------------------------
+
+  function renderDebug() {
+    document.getElementById("debugOutput").textContent = JSON.stringify(state, null, 2);
+  }
+
+  document.getElementById("exportJsonBtn").onclick = async () => {
+    const text = JSON.stringify(state, null, 2);
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("State JSON copied to clipboard.");
+    } catch (e) {
+      alert("Could not copy to clipboard, but state is shown below.");
+    }
+  };
+
+  document.getElementById("clearAllBtn").onclick = () => {
+    if (confirm("Clear all spinners and chains from local storage?")) {
+      state.spinners = [];
+      state.chainSteps = [];
+      state.chains = [];
+      saveState();
+      renderSpinners();
+      renderChainSteps();
+    }
+  };
+
+  // init
+  loadState();
+  renderSpinners();
+  renderChainSteps();
+  renderDebug();
+</script>
+</body>
+</html>
